@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="display-1 text-muted">📦</div>
+                <h2 class="card-title mt-3">{{ product.name }}</h2>
+                <p class="text-muted">SKU: {{ product.sku }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Product Details</h4>
+                
+                <div class="mb-4">
+                    <h5 class="text-primary">${{ product.price }}</h5>
+                    <span class="badge bg-{% if product.stock > 10 %}success{% elif product.stock > 0 %}warning{% else %}danger{% endif %} fs-6">
+                        {% if product.stock > 10 %}
+                            <i class="bi bi-check-circle"></i> In Stock ({{ product.stock }} available)
+                        {% elif product.stock > 0 %}
+                            <i class="bi bi-exclamation-triangle"></i> Low Stock ({{ product.stock }} left)
+                        {% else %}
+                            <i class="bi bi-x-circle"></i> Out of Stock
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Description</h6>
+                    <p class="text-muted">{{ product.description }}</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <h6>Status</h6>
+                        <span class="badge bg-{% if product.status == 'active' %}success{% else %}secondary{% endif %}">
+                            {{ product.status|title }}
+                        </span>
+                    </div>
+                    <div class="col-6">
+                        <h6>Category</h6>
+                        <span class="badge bg-info">
+                            {% if product.category %}{{ product.category.name }}{% else %}Uncategorized{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'create_order' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_{{ product.id }}" value="1">
+                    
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <label for="quantity" class="form-label">Quantity:</label>
+                        </div>
+                        <div class="col">
+                            <input type="number" id="quantity" name="quantity_{{ product.id }}" 
+                                   class="form-control" value="1" min="1" max="{{ product.stock }}">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary btn-lg" 
+                                    {% if product.stock == 0 %}disabled{% endif %}>
+                                <i class="bi bi-cart-plus"></i> Add to Order
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    Please <a href="{% url 'login' %}" class="alert-link">login</a> to add this product to your order.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="mt-4">
+    <a href="{% url 'product_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+</div>
+{% endblock %}

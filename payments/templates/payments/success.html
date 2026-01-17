@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <div class="success-icon rounded-circle bg-success d-inline-flex align-items-center justify-content-center" 
+             style="width: 100px; height: 100px;">
+            <i class="bi bi-check2 display-3 text-white"></i>
+        </div>
+    </div>
+    
+    <h1 class="display-5 mb-3">Payment Successful!</h1>
+    <p class="lead text-muted mb-4">Thank you for your purchase. Your order has been confirmed.</p>
+    
+    <div class="card shadow-lg mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="bi bi-receipt"></i> Payment Confirmation</h4>
+        </div>
+        <div class="card-body">
+            <div class="row text-start mb-4">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Order Number</small>
+                        <strong class="fs-5">#{{ order.id }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Date & Time</small>
+                        <strong>{{ payment.created_at|date:"F d, Y H:i A" }}</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Payment Method</small>
+                        <div class="d-flex align-items-center">
+                            {% if payment.provider == 'stripe' %}
+                            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968382.png" alt="Stripe" height="25" class="me-2">
+                            <strong>Credit/Debit Card</strong>
+                            {% else %}
+                            <img src="https://download.logo.wine/logo/BKash/BKash-Icon2-Logo.wine.png" alt="bKash" height="25" class="me-2">
+                            <strong>bKash</strong>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Transaction ID</small>
+                        <code class="text-success">{{ payment.transaction_id }}</code>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">Total Amount Paid</h6>
+                            <small class="text-muted">Including all taxes and fees</small>
+                        </div>
+                        <div class="text-end">
+                            <h2 class="text-success mb-0">TK{{ payment.amount }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="card-footer bg-light">
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-eye"></i> View Order Details
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'product_list' %}" class="btn btn-primary w-100">
+                        <i class="bi bi-cart-plus"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items Preview -->
+    <div class="card shadow mt-4 mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Order Items</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                {% for item in order.items.all %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ item.product.name }}</strong>
+                            <div class="text-muted small">Qty: {{ item.quantity }} × TK{{ item.price }}</div>
+                        </div>
+                        <span class="h6 mb-0">TK{{ item.subtotal }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.success-icon {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+</style>
+{% endblock %}

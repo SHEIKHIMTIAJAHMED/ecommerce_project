@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Order Summary -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-credit-card"></i> Checkout</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Order Summary</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Order ID:</span>
+                                    <strong>#{{ order.id }}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Date:</span>
+                                    <span>{{ order.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Items:</span>
+                                    <span>{{ order.items.count }} items</span>
+                                </div>
+                                <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+                                    <span class="h5">Total:</span>
+                                    <span class="h3 text-primary">TK{{ order.total_amount }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Payment Method</h5>
+                        <form method="post" id="paymentForm">
+                            {% csrf_token %}
+                            
+                            <div class="list-group mb-3">
+                                <label class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div>
+                                            <input class="form-check-input me-3" type="radio" name="provider" value="stripe" checked>
+                                            <strong>Credit/Debit Card (Stripe)</strong>
+                                        </div>
+                                        <div class="text-end">
+                                            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968382.png" alt="Stripe" height="30">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Pay securely with your credit or debit card</small>
+                                </label>
+                                
+                                <label class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <div>
+                                            <input class="form-check-input me-3" type="radio" name="provider" value="bkash">
+                                            <strong>bKash</strong>
+                                        </div>
+                                        <div class="text-end">
+                                            <img src="https://download.logo.wine/logo/BKash/BKash-Icon2-Logo.wine.png" alt="bKash" height="30">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Mobile banking payment through bKash</small>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-lock"></i> Pay TK{{ order.total_amount }}
+                                </button>
+                                <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Back to Order
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Check -->
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Stock Check:</strong> 
+            {% for item in order.items.all %}
+                {{ item.product.name }}: {{ item.product.stock }} available (ordering {{ item.quantity }}){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Order Items -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Order Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 g-3">
+                    {% for item in order.items.all %}
+                    <div class="col">
+                        <div class="card h-100 border">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-light rounded p-2">
+                                            <i class="bi bi-box text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ item.product.name }}</h6>
+                                        <div class="d-flex justify-content-between">
+                                            <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                            <strong>TK{{ item.subtotal }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stripeRadio = document.querySelector('input[value="stripe"]');
+    const bkashRadio = document.querySelector('input[value="bkash"]');
+    const stripeDetails = document.getElementById('stripeDetails');
+    const bkashDetails = document.getElementById('bkashDetails');
+    
+    function updatePaymentDetails() {
+        if (stripeRadio.checked) {
+            stripeDetails.classList.remove('d-none');
+            bkashDetails.classList.add('d-none');
+        } else {
+            stripeDetails.classList.add('d-none');
+            bkashDetails.classList.remove('d-none');
+        }
+    }
+    
+    stripeRadio.addEventListener('change', updatePaymentDetails);
+    bkashRadio.addEventListener('change', updatePaymentDetails);
+    
+    // Initialize
+    updatePaymentDetails();
+    
+    // Form submission
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Processing...';
+    });
+});
+</script>
+{% endblock %}

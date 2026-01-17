@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'order_list' %}">My Orders</a></li>
+                <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">Order Details</h1>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-{% if order.status == 'paid' %}success{% elif order.status == 'canceled' %}danger{% else %}warning{% endif %} fs-6 p-3">
+            <i class="bi bi-{% if order.status == 'paid' %}check-circle{% elif order.status == 'canceled' %}x-circle{% else %}clock{% endif %}"></i>
+            {{ order.status|upper }}
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Order Items -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cart-check"></i> Order Items</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50px">#</th>
+                                <th>Product</th>
+                                <th class="text-center">Price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td class="text-muted">{{ forloop.counter }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="bg-light rounded p-2">
+                                                <i class="bi bi-box text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <strong>{{ item.product.name }}</strong><br>
+                                            <small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">TK{{ item.price }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary rounded-pill">{{ item.quantity }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <strong>TK{{ item.subtotal }}</strong>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="bi bi-cart-x display-4 text-muted d-block mb-3"></i>
+                                    <h5 class="text-muted">No items in this order</h5>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end"><h5 class="mb-0">Total:</h5></td>
+                                <td class="text-end">
+                                    <h3 class="text-primary mb-0">TK{{ order.total_amount }}</h3>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Action -->
+        {% if order.status == 'pending' %}
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <h5>Ready to complete your order?</h5>
+                <p class="text-muted mb-3">Proceed to payment to confirm your order.</p>
+                <a href="{% url 'payment_checkout' order.id %}" class="btn btn-success btn-lg">
+                    <i class="bi bi-credit-card"></i> Proceed to Payment
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Order Info -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Order Info</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Order ID</small>
+                    <strong>#{{ order.id }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Order Date</small>
+                    <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Items</small>
+                    <strong>{{ order.items.count }} items</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Status</small>
+                    <span class="badge bg-{% if order.status == 'paid' %}success{% elif order.status == 'canceled' %}danger{% else %}warning{% endif %}">
+                        {{ order.status|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Info -->
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle"></i> Customer</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Name</small>
+                    <strong>{{ order.user.get_full_name|default:order.user.username }}</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Email</small>
+                    <strong>{{ order.user.email }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="mt-4">
+    <a href="{% url 'order_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+</div>
+{% endblock %}

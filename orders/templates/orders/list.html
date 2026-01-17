@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5"><i class="bi bi-list-check"></i> My Orders</h1>
+        <p class="lead text-muted">Your order history</p>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'create_order' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Order
+        </a>
+    </div>
+</div>
+
+{% if orders %}
+<div class="row">
+    {% for order in orders %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Order #{{ order.id }}</strong>
+                <span class="badge bg-{% if order.status == 'paid' %}success{% elif order.status == 'canceled' %}danger{% else %}warning{% endif %}">
+                    {{ order.status|title }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">Date:</small>
+                    <small>{{ order.created_at|date:"M d, Y" }}</small>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">Items:</small>
+                    <small>{{ order.items.count }} items</small>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <small class="text-muted">Total:</small>
+                    <strong class="h5">TK{{ order.total_amount }}</strong>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Products:</small>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for item in order.items.all|slice:":3" %}
+                        <span class="badge bg-light text-dark border">
+                            {{ item.product.name|truncatechars:15 }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-grid">
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-cart-x display-1 text-muted"></i>
+    </div>
+    <h3 class="text-muted">No Orders Yet</h3>
+    <p class="text-muted mb-4">You haven't placed any orders yet.</p>
+    <a href="{% url 'create_order' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-cart-plus"></i> Create Your First Order
+    </a>
+</div>
+{% endif %}
+{% endblock %}

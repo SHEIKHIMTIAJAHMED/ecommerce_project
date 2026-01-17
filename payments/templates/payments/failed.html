@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <div class="failed-icon rounded-circle bg-danger d-inline-flex align-items-center justify-content-center" 
+             style="width: 100px; height: 100px;">
+            <i class="bi bi-x display-3 text-white"></i>
+        </div>
+    </div>
+    
+    <h1 class="display-5 mb-3">Payment Failed</h1>
+    <p class="lead text-muted mb-4">We couldn't process your payment. Please try again.</p>
+    
+    <div class="card shadow-lg mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0"><i class="bi bi-credit-card"></i> Payment Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="row text-start mb-4">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Order Number</small>
+                        <strong class="fs-5">#{{ order.id }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Date & Time</small>
+                        <strong>{{ payment.created_at|date:"F d, Y H:i A" }}</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Payment Method</small>
+                        <div class="d-flex align-items-center">
+                            {% if payment.provider == 'stripe' %}
+                            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968382.png" alt="Stripe" height="25" class="me-2">
+                            <strong>Credit/Debit Card</strong>
+                            {% else %}
+                            <img src="https://download.logo.wine/logo/BKash/BKash-Icon2-Logo.wine.png" alt="bKash" height="25" class="me-2">
+                            <strong>bKash</strong>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Status</small>
+                        <span class="badge bg-danger">Failed</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>Possible reasons for failure:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Insufficient funds in your account</li>
+                    <li>Incorrect payment details</li>
+                    <li>Network connectivity issues</li>
+                    <li>Temporary service unavailability</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-footer bg-light">
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-arrow-left"></i> Back to Order
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'payment_checkout' order.id %}" class="btn btn-danger w-100">
+                        <i class="bi bi-credit-card"></i> Try Payment Again
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

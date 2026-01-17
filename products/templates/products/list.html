@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">Products</h1>
+        <p class="lead">Browse our collection of amazing products</p>
+    </div>
+    {% if user.is_authenticated %}
+    <div class="col-auto">
+        <a href="{% url 'create_order' %}" class="btn btn-primary">
+            <i class="bi bi-cart-plus"></i> Create New Order
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Categories Filter -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Categories</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'product_list' %}" class="btn btn-sm btn-outline-primary">All Products</a>
+                    {% for category in categories %}
+                    <a href="#" class="btn btn-sm btn-outline-secondary">{{ category.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-img-top bg-light text-center py-4">
+                <div class="display-4 text-muted">🛒</div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted">{{ product.description|truncatechars:80 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="h4 text-primary">TK{{ product.price }}</span>
+                    <span class="badge bg-{% if product.stock > 10 %}success{% elif product.stock > 0 %}warning{% else %}danger{% endif %}">
+                        {% if product.stock > 10 %}In Stock{% elif product.stock > 0 %}Low Stock{% else %}Out of Stock{% endif %}
+                    </span>
+                </div>
+                <small class="text-muted">SKU: {{ product.sku }}</small>
+            </div>
+            <div class="card-footer bg-white border-top-0">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+                    {% if user.is_authenticated and product.stock > 0 %}
+                    <form method="post" action="{% url 'create_order' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_{{ product.id }}" value="1">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i> Add to Order
+                        </button>
+                    </form>
+                    {% elif not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-box-arrow-in-right"></i> Login to Order
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <h4 class="alert-heading">No Products Available</h4>
+            <p>Check back later for new products!</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if products.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if products.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">First</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+        </li>
+        {% endif %}
+        
+        {% for num in products.paginator.page_range %}
+        {% if products.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if products.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ products.paginator.num_pages }}">Last</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
